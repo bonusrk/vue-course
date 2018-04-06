@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<h1>Vue</h1>
+<div id='app'>
+    <h1 v-once v-bind:title="title">{{title}}</h1>
+
+    <p v-if="condition" v-bind:class="form-control">Тестовый абзац</p>
+    <p v-else-if="condition" class="form-control">Тестовый абзац</p>
+    <p v-show="condition" class="form-control">Тестовый абзац</p>
+
+    <ul>
+        <li v-for="(item,index) in list" v-bind:key="item.id">{{index}} {{ item.text }}</li>
+    </ul>
+
+    <p>{{ total() }}</p>
+
+    <button v-on:click="total">
+        Click
+    </button>
+
+    <input type="text" v-model="title" />
+</div>
+
+
+<!--suppress JSUnresolvedLibraryURL -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+
+  window.app = new Vue({
+    el: '#app',
+    data: () => {
+      return {
+        title: 'Vue? Vue. Vue!',
+        number: 123,
+        tooltip: 'Подсказка',
+        condition: true,
+        list: [
+          { text: 'First', id: 1 },
+          { text: 'Second', id: 2 }
+        ]
+      };
+    },
+    computed: {},
+    watch: {},
+    methods: {
+      buttonClicked: function () {
+        console.log('CLICK');
+      },
+      total: function () {
+        this.buttonClicked();
+        console.log(this.list.length);
+      }
+    },
+    mounted:function(){
+      axios.get('...').then(response=>{
+        //this === Vue
+        this.list = response
+      })
+    }
+  });
+
+</script>
+
+</body>
+</html>
