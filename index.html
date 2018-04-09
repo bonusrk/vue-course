@@ -8,23 +8,13 @@
 
 <h1>Vue</h1>
 <div id='app'>
-    <h1 v-once v-bind:title="title">{{title}}</h1>
+    <h1>{{title}}</h1>
+    <label>test1</label>
+    <input type="text" v-model="test1" key="test1key">
+    <label>test1</label>
+    <input type="text" v-model="test2" key="test2key">
 
-    <p v-if="condition" v-bind:class="form-control">Тестовый абзац</p>
-    <p v-else-if="condition" class="form-control">Тестовый абзац</p>
-    <p v-show="condition" class="form-control">Тестовый абзац</p>
-
-    <ul>
-        <li v-for="(item,index) in list" v-bind:key="item.id">{{index}} {{ item.text }}</li>
-    </ul>
-
-    <p>{{ total() }}</p>
-
-    <button v-on:click="total">
-        Click
-    </button>
-
-    <input type="text" v-model="title" />
+    <button v-on:click="buttonClicked">Click</button>
 </div>
 
 
@@ -36,33 +26,37 @@
     el: '#app',
     data: () => {
       return {
-        title: 'Vue? Vue. Vue!',
-        number: 123,
-        tooltip: 'Подсказка',
-        condition: true,
-        list: [
-          { text: 'First', id: 1 },
-          { text: 'Second', id: 2 }
-        ]
+        blabla: true,
+        test1: '',
+        test2: '',
+        list: [],
+        screenWidth: window.outerWidth
       };
     },
-    computed: {},
-    watch: {},
-    methods: {
-      buttonClicked: function () {
-        console.log('CLICK');
-      },
+    mounted: function () {
+      window.addEventListener('resize', () => this.screenWidth = window.outerWidth);
+    },
+    beforeDestroy: function () {
+
+    },
+    computed: {
       total: function () {
-        this.buttonClicked();
-        console.log(this.list.length);
+        return this.list.length;
+      },
+      title: function () {
+        return `${this.test1} ${this.test2} - ${this.screenWidth}`;
       }
     },
-    mounted:function(){
-      axios.get('...').then(response=>{
-        //this === Vue
-        this.list = response
-      })
-    }
+    watch: {
+      test1: function (newValue, oldValue) {
+        console.log(`${oldValue} - ${newValue}`);
+      }
+    },
+    methods: {
+      buttonClicked: function () {
+        this.blabla = !this.blabla;
+      },
+    },
   });
 
 </script>
