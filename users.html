@@ -5,22 +5,196 @@
     <title>Title</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
     <style>
         [v-cloak] {
             display: none;
         }
+
+        h3 {
+            padding: 10px 0;
+        }
+
+        th {
+            cursor: pointer;
+        }
+
+        .controls {
+            padding: 20px 0;
+        }
     </style>
 </head>
 <body>
-<div id="app">
 
+<div id="app" v-cloak>
+    <div>
+        <h3>Список пользователей</h3>
+        <div class="controls">
+            <button
+                    type="button"
+                    v-on:click="togglePage"
+                    v-bind:class="[editPage ? 'btn-primary':'btn-warning', 'btn']"
+            >
+                {{editPage? 'Список пользователей':'Редактирование пользователей'}}
+            </button>
+        </div>
+        <users
+                v-bind:users="users"
+                v-bind:page="editPage"
+                v-on:sort="sortBy($event)">
+        </users>
+    </div>
+</div>
+
+<div id="users" v-cloak>
+    <table class="table">
+        <thead>
+        <th v-on:click="sort('name')">Name</th>
+        <th v-on:click="sort('email')">Email</th>
+        <th v-on:click="sort('jobTitle')">Job Title</th>
+        <th v-on:click="sort('location')">Location</th>
+        <th v-on:click="sort('industry')">Industry</th>
+        <th v-if="page">Controls</th>
+        </thead>
+        <tbody>
+        <tr v-for="user in users">
+            <td>
+                <span v-if="!checkIncludes(user.id)">{{user.name}}</span>
+                <input v-else type="text" v-model="user.name">
+            </td>
+            <td>
+                <span v-if="!checkIncludes(user.id)">{{user.email}}</span>
+                <input v-else type="text" v-model="user.email">
+            </td>
+            <td>
+                <span v-if="!checkIncludes(user.id)">{{user.jobTitle}}</span>
+                <input v-else type="text" v-model="user.jobTitle">
+            </td>
+            <td>
+                <span v-if="!checkIncludes(user.id)">{{user.location}}</span>
+                <input v-else type="text" v-model="user.location">
+            </td>
+            <td>
+                <span v-if="!checkIncludes(user.id)">{{user.industry}}</span>
+                <input v-else type="text" v-model="user.industry">
+            </td>
+            <td v-if="page">
+                <button
+                        v-on:click="toggleEditable(user.id)"
+                        type="button"
+                        v-bind:class="[checkIncludes(user.id) ? 'btn-success':'btn-warning', 'btn']">
+                    <i v-bind:class="[checkIncludes(user.id) ? 'fa-check':'fa-pencil', 'fa']"></i>
+                </button>
+                <button
+                        class="btn btn-danger"
+                        v-if="checkIncludes(user.id)"
+                        type="button"
+                        v-on:click="toggleEditable(user.id)"
+                >
+                    <i class="fa fa-times"></i>
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 
 <!--suppress JSUnresolvedLibraryURL -->
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<!--suppress JSUnresolvedLibraryURL -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+<!--suppress JSUnresolvedLibraryURL -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.5/lodash.min.js"></script>
 <script>
+
+  const Users = {
+    template: '#users',
+    props: {
+      users: {
+        type: Array,
+        required: true,
+        default: function () {
+          return [];
+        }
+      },
+      page: {
+        type: Boolean,
+        required: true,
+        default: function () {
+          return false;
+        }
+      },
+      isEditing: {
+        type: Array,
+        default: function () {
+          return [];
+        }
+      }
+    },
+
+    methods: {
+      // @params:column
+      // @type:string
+      // sort data by column name
+      sort(column) {
+        this.$emit('sort', column);
+      },
+      // toggle fields to editable
+      toggleEditable(id) {
+        const includes = _.findIndex(this.isEditing, i => {
+          return i === id;
+        });
+        if (includes === -1) {
+          return this.isEditing.push(id);
+        } else {
+          return this.isEditing = this.isEditing.filter(i => i !== id);
+        }
+
+      },
+      // @params: string
+      // @type: Number
+      // checks if id of item is in array, then tells Vue to toggle it to input
+      checkIncludes(id) {
+        const includes = _.findIndex(this.isEditing, i => i === id);
+        return includes !== -1;
+      }
+    }
+  };
+
   new Vue({
     el: '#app',
+    data: function () {
+      return {
+        users: [],
+        editPage: false,
+      };
+    },
+    components: {
+      'users': Users
+    },
+    mounted: async function () {
+      const response = await axios.get('./users.json');
+      this.users = response.data;
+    },
+    methods: {
+      sortBy(column) {
+        this.users = this.users.sort((a, b) => {
+          const compare = a[column] > b[column];
+          if (compare) {
+            return 1;
+          }
+          if (!compare) {
+            return -1;
+          }
+          return 0;
+        });
+      },
+      // pseudo-router - toggles page type
+      togglePage() {
+        return this.editPage = !this.editPage;
+      }
+    }
   });
 </script>
 </body>
