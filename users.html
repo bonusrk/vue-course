@@ -42,7 +42,10 @@
         <users
                 v-bind:users="users"
                 v-bind:page="editPage"
-                v-on:sort="sortBy($event)">
+                v-on:sort="sortBy($event)"
+                v-on:save="save($event)"
+                v-on:cancel="cancel"
+        >
         </users>
     </div>
 </div>
@@ -81,7 +84,7 @@
             </td>
             <td v-if="page">
                 <button
-                        v-on:click="toggleEditable(user.id)"
+                        v-on:click="checkIncludes(user.id)? save(user):toggleEditable(user.id)"
                         type="button"
                         v-bind:class="[checkIncludes(user.id) ? 'btn-success':'btn-warning', 'btn']">
                     <i v-bind:class="[checkIncludes(user.id) ? 'fa-check':'fa-pencil', 'fa']"></i>
@@ -90,7 +93,7 @@
                         class="btn btn-danger"
                         v-if="checkIncludes(user.id)"
                         type="button"
-                        v-on:click="toggleEditable(user.id)"
+                        v-on:click="cancel(user.id)"
                 >
                     <i class="fa fa-times"></i>
                 </button>
@@ -158,6 +161,14 @@
       checkIncludes(id) {
         const includes = _.findIndex(this.isEditing, i => i === id);
         return includes !== -1;
+      },
+      save(user) {
+        this.$emit('save', user);
+        return this.isEditing = this.isEditing.filter(i => i !== user.id);
+      },
+      cancel(id) {
+        this.$emit('cancel', id);
+        return this.isEditing = this.isEditing.filter(i => i !== id);
       }
     }
   };
@@ -193,6 +204,16 @@
       // pseudo-router - toggles page type
       togglePage() {
         return this.editPage = !this.editPage;
+      },
+      // not sure if it really needed here, coz we already changed this data inside Users component
+      save(user) {
+        const index = _.findIndex(this.users, i => i.id === user.id);
+        return this.users[index] = user;
+      },
+      // dummy method to cancel editions. Just reload the whole data
+      async cancel() {
+        const response = await axios.get('./users.json');
+        this.users = response.data;
       }
     }
   });
