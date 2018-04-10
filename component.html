@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Vue</h1>
+<div id='app' v-cloak>
+    <h4>Список пользователей</h4>
+    <user-list v-bind:users="list" v-on:remove="removeUserFromList($event)"></user-list>
+    <user-list v-bind:users="list"></user-list>
+    <button type="button" v-on:click="addUser">Add User</button>
+</div>
+
+<div id="user-list" v-cloak>
+    <ul>
+        <li v-for="user in users" :key="user.title">
+            {{user.title}}
+            <button type="button" v-on:click="removeUser(user.title)">Remove user</button>
+        </li>
+    </ul>
+</div>
+
+
+<!--suppress JSUnresolvedLibraryURL -->
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script>
+
+  const UserList = {
+    template: '#user-list',
+    props: {
+      users: {
+        type: Array,
+        required: true,
+        default: () => [],
+      }
+    },
+    data: function () {
+      return {
+        test: '123'
+      };
+    },
+    methods: {
+      removeUser(title) {
+        this.$emit('remove', title);
+      }
+    }
+  };
+
+  new Vue({
+    el: '#app',
+    components: {
+      'user-list': UserList
+    },
+    data: () => {
+      return {
+        list: []
+      };
+    },
+    methods: {
+      addUser() {
+        this.list = [{ title: 123 }, { title: 1234 }];
+      },
+      removeUserFromList(title) {
+        this.list = this.list.filter(item => item.title !== title);
+      }
+    }
+  });
+
+</script>
+
+</body>
+</html>

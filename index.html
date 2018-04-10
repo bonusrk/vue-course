@@ -10,11 +10,11 @@
 <div id='app'>
     <h1>{{title}}</h1>
     <label>test1</label>
-    <input type="text" v-model="test1" key="test1key">
+    <input type="text" v-model="test1" :key="test1">
     <label>test1</label>
-    <input type="text" v-model="test2" key="test2key">
+    <input type="text" v-model="test2" :key="test2">
 
-    <button v-on:click="buttonClicked">Click</button>
+    <button type="button" v-on:click.prevent="buttonClicked">Click</button>
 </div>
 
 
@@ -48,11 +48,16 @@
       }
     },
     watch: {
-      test1: function (newValue, oldValue) {
-        console.log(`${oldValue} - ${newValue}`);
+      test1: {
+        handler: 'test1Changed',
+        immediate: true,
+        deep: true,
       }
     },
     methods: {
+      test1Changed: function (newValue, oldValue) {
+        console.log(`${oldValue} - ${newValue}, ${this.test1}`);
+      },
       buttonClicked: function () {
         this.blabla = !this.blabla;
       },
